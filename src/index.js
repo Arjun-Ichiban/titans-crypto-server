@@ -17,9 +17,9 @@ app.listen(PORT, () => {
     console.log(`Server listening on ${PORT}`);
 });
 
-app.get('/', (req, res) => {
-    res.send("index")
-});
+// app.get('/', (req, res) => {
+//     res.send("index")
+// });
 
 app.post('/', (req, res) => {
     console.log(req.body);
