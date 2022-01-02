@@ -1,20 +1,29 @@
-const express = require("express");
-const bodyParser = require('body-parser')
+const express = require('express');
 const app = express();
+const bodyParser = require('body-parser');
+const cors = require('cors')
 
-app.use(bodyParser.json())
-app.use(
-    bodyParser.urlencoded({
-        extended: true,
-    })
-)
+require('dotenv').config();
+
+const userRoute = require('./routes/UserRouter');
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-    console.log(`App running on port ${PORT}`);
+    console.log(`Server listening on ${PORT}`);
 });
 
 app.get('/', (req, res) => {
     res.send("index")
 });
+
+app.post('/', (req, res) => {
+    console.log(req.body);
+    res.send("yes");
+});
+
+app.use('/user', userRoute);
