@@ -23,7 +23,7 @@ app.listen(PORT, () => {
 
 app.post('/', (req, res) => {
     console.log(req.body);
-    res.send("yes");
+    res.status(200).send("yes");
 });
 
 app.use('/user', userRoute);
