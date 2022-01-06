@@ -53,3 +53,34 @@ exports.signIn = async (req, res) => {
     });
   }
 };
+
+exports.walletBalance = async (req, res) => {
+  try {
+    const user_id = req.params.id;
+
+    const { rows } = await db.query(
+      `SELECT wallet_balance 
+          FROM balance
+              WHERE user_id=$1;`,
+      [user_id]
+    );
+
+    if (rows == 0) {
+      res.status(400).send({
+        message: "Transaction Failed",
+      });
+    } else {
+      res.status(200).send({
+        message: "Successful Transaction",
+        body: {
+          user: { user_id },
+        },
+        wallet_balance: rows[0].wallet_balance,
+      });
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: "Error occured",
+    });
+  }
+};
