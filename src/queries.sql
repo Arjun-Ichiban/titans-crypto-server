@@ -18,6 +18,20 @@ CREATE TABLE balance (
 );
 
 
+-- Create Wallet Transaction Table
+
+CREATE TYPE trans_type AS ENUM ('deposit', 'withdraw');
+
+CREATE TABLE wallet_transaction (
+    user_id INT UNIQUE,
+	trans_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    trans_amt FLOAT NOT NULL,
+    trans_type trans_type NOT NULL,
+	trans_date TIMESTAMP NOT NULL,
+	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+
 -- Sign Up 
 
 INSERT INTO users (username, email, password) VALUES ('a', 'b', 'c') RETURNING user_id;
@@ -28,7 +42,6 @@ INSERT INTO users (username, email, password) VALUES ('a', 'b', 'c') RETURNING u
 SELECT user_id 
     FROM users
         WHERE email='a' and password='a';
-
 
 
 -- Trigger function to create a row in balance table after a user has been created.
@@ -46,6 +59,7 @@ BEGIN
 END;
 $$
 
+
 -- Trigger to add a row in the balance table when a new user is created.
 
 CREATE TRIGGER balance_table_entry
@@ -53,3 +67,59 @@ CREATE TRIGGER balance_table_entry
   ON users
   FOR EACH ROW
   EXECUTE PROCEDURE balance_table_insert_row();
+
+
+-- Insert Into Wallet Transaction Table
+
+INSERT INTO wallet_transaction (user_id, trans_amt, trans_type, trans_date) 
+	VALUES (5, 500, 'deposit', CURRENT_TIMESTAMP);
+
+
+-- Stored Procedure To Insert Into Transaction Table
+
+create or replace procedure wallet_transaction(
+	user_id int,
+  	amount float,
+	trans_type trans_type
+)
+language plpgsql    
+as $$
+begin
+    INSERT INTO wallet_transaction (user_id, trans_amt, trans_type, trans_date) 
+	VALUES (user_id, amount, trans_type , CURRENT_TIMESTAMP);
+
+    commit;
+end;$$
+
+
+-- To call a stored procedure
+ call wallet_transaction(5, 500, 'deposit');
+
+
+ -- Trigger function to update the wallet balance of the user for both deposit and withdraw
+
+CREATE OR REPLACE FUNCTION wallet_balance_update()
+  RETURNS TRIGGER 
+  LANGUAGE PLPGSQL
+  AS
+$$
+BEGIN
+	IF new.trans_type ='deposit' THEN
+		UPDATE balance	
+			SET wallet_balance = wallet_balance + new.trans_amt;
+	ELSE
+		UPDATE balance
+    		SET wallet_balance = wallet_balance - new.trans_amt;
+ 	END IF;
+
+	RETURN NEW;
+END;
+$$
+
+-- Trigger to update the wallet balance
+
+CREATE TRIGGER wallet_balance_after_transaction
+  AFTER INSERT
+  ON wallet_transaction
+  FOR EACH ROW
+  EXECUTE PROCEDURE wallet_balance_update();
