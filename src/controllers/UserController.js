@@ -114,7 +114,7 @@ exports.walletTransactionList = async (req, res) => {
     const user_id = req.params.id;
 
     const { rows } = await db.query(
-      `SELECT trans_amt, trans_type, trans_date 
+      `SELECT trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date
           FROM wallet_transaction
               WHERE user_id=$1;`,
       [user_id]
@@ -134,3 +134,39 @@ exports.walletTransactionList = async (req, res) => {
     });
   }
 };
+
+
+exports.userDetails = async (req, res) => {
+  try {
+    const user_id = req.params.id;
+
+    const { rows } = await db.query(
+      `select * from users
+          WHERE user_id=$1;`,
+      [user_id]
+    );
+
+    console.log(rows);
+
+    if (rows == 0) {
+      res.status(400).send({
+        message: "User does not exists",
+      });
+    } else {
+      res.status(200).send({
+        message: "Successful Retrieval",
+        body: {
+          user: { user_id },
+        },
+        username: rows[0].username,
+        email: rows[0].email,
+        password: rows[0].password
+      });
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: "Error occured",
+    });
+  }
+};
+
