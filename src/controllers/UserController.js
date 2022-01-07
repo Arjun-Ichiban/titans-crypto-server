@@ -95,8 +95,6 @@ exports.walletTransaction = async (req, res) => {
       [user_id, amount, type]
     );
 
-    // console.log(result);
-
     res.status(200).send({
       message: "Successful Transaction",
       body: {
@@ -106,6 +104,33 @@ exports.walletTransaction = async (req, res) => {
   } catch (error) {
     res.status(400).send({
       message: "Transaction Failed",
+    });
+  }
+};
+
+
+exports.walletTransactionList = async (req, res) => {
+  try {
+    const user_id = req.params.id;
+
+    const { rows } = await db.query(
+      `SELECT trans_amt, trans_type, trans_date 
+          FROM wallet_transaction
+              WHERE user_id=$1;`,
+      [user_id]
+    );
+    if (rows == 0) {
+      res.status(400).send({
+        message: "Retrieval Failed",
+      });
+    } else {
+      res.status(200).send(
+        rows
+      );
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: "Error occured",
     });
   }
 };

@@ -24,10 +24,10 @@ CREATE TYPE trans_type AS ENUM ('deposit', 'withdraw');
 
 CREATE TABLE wallet_transaction (
     user_id INT UNIQUE,
-	trans_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	  trans_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     trans_amt FLOAT NOT NULL,
     trans_type trans_type NOT NULL,
-	trans_date TIMESTAMP NOT NULL,
+	  trans_date TIMESTAMP NOT NULL,
 	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -79,21 +79,21 @@ INSERT INTO wallet_transaction (user_id, trans_amt, trans_type, trans_date)
 
 create or replace procedure wallet_transaction(
 	user_id int,
-  	amount float,
+  amount float,
 	trans_type trans_type
 )
 language plpgsql    
 as $$
 begin
     INSERT INTO wallet_transaction (user_id, trans_amt, trans_type, trans_date) 
-	VALUES (user_id, amount, trans_type , CURRENT_TIMESTAMP);
+	    VALUES (user_id, amount, trans_type , CURRENT_TIMESTAMP);
 
     commit;
 end;$$
 
 
 -- To call a stored procedure
- call wallet_transaction(5, 500, 'deposit');
+call wallet_transaction(5, 500, 'deposit');
 
 
  -- Trigger function to update the wallet balance of the user for both deposit and withdraw
