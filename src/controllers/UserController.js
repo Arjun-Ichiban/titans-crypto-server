@@ -146,8 +146,6 @@ exports.userDetails = async (req, res) => {
       [user_id]
     );
 
-    console.log(rows);
-
     if (rows == 0) {
       res.status(400).send({
         message: "User does not exists",
@@ -169,4 +167,29 @@ exports.userDetails = async (req, res) => {
     });
   }
 };
+
+
+exports.coinTransaction = async (req, res) => {
+  try {
+    const user_id = req.params.id;
+    const { coin_id, amount, no_of_coins, type, image_url } = req.body;
+
+    const result = await db.query(
+      `call coin_transaction($1, $2, $3, $4, $5, $6);`,
+      [user_id, coin_id, amount, no_of_coins, type, image_url]
+    );
+
+    res.status(200).send({
+      message: "Successful Transaction",
+      body: {
+        user: { user_id },
+      }
+    });
+  } catch (error) {
+    res.status(400).send({
+      message: "Transaction Failed",
+    });
+  }
+};
+
 
