@@ -23,11 +23,39 @@ CREATE TABLE balance (
 CREATE TYPE trans_type AS ENUM ('deposit', 'withdraw');
 
 CREATE TABLE wallet_transaction (
-    user_id INT UNIQUE,
+    user_id INT,
 	  trans_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     trans_amt FLOAT NOT NULL,
     trans_type trans_type NOT NULL,
 	  trans_date TIMESTAMP NOT NULL,
+	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+
+-- Create Coin Transaction Table
+
+CREATE TYPE coin_trans_type AS ENUM ('buy', 'sell');
+
+CREATE TABLE coin_transaction (
+  user_id INT,
+	trans_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+	coin_id varchar(40) NOT NULL,
+  trans_amt FLOAT NOT NULL,
+	no_of_coins FLOAT NOT NULL, 
+  trans_type coin_trans_type NOT NULL,
+  image_url varchar(200) NOT NULL,
+	trans_date TIMESTAMP NOT NULL,
+	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+
+-- Create Coin Holding Table
+
+CREATE TABLE coin_holding (
+	user_id INT,
+	coin_id varchar(40) NOT NULL,
+	no_of_coins FLOAT NOT NULL,
+	PRIMARY KEY(user_id, coin_id),
 	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
@@ -106,10 +134,12 @@ $$
 BEGIN
 	IF new.trans_type ='deposit' THEN
 		UPDATE balance	
-			SET wallet_balance = wallet_balance + new.trans_amt;
+			SET wallet_balance = wallet_balance + new.trans_amt
+        where balance.user_id = new.user_id;
 	ELSE
 		UPDATE balance
-    		SET wallet_balance = wallet_balance - new.trans_amt;
+    		SET wallet_balance = wallet_balance - new.trans_amt
+          where balance.user_id = new.user_id;
  	END IF;
 
 	RETURN NEW;
@@ -123,3 +153,90 @@ CREATE TRIGGER wallet_balance_after_transaction
   ON wallet_transaction
   FOR EACH ROW
   EXECUTE PROCEDURE wallet_balance_update();
+
+
+-- To Get a List of Wallet Transaction
+
+select trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date from wallet_transaction where user_id=5;
+
+
+-- To Get User Details
+
+select * from users where user_id = 5;
+
+
+
+-- Stored Procedure to Insert Into Coin Transaction Table
+
+create or replace procedure coin_transaction(
+	user_id int,
+	coin_id varchar(40),
+ 	trans_amt float,
+	no_of_coins float,
+	trans_type coin_trans_type,
+	image_url varchar(200)
+)
+language plpgsql    
+as $$
+begin
+    INSERT INTO coin_transaction (user_id, coin_id, trans_amt, no_of_coins, trans_type, image_url, trans_date) 
+	    VALUES (user_id, coin_id, trans_amt, no_of_coins, trans_type , image_url, CURRENT_TIMESTAMP);
+
+    commit;
+end;$$
+
+-- To call a stored procedure
+ call coin_transaction(5, 'bitcoin', 100, 0.1, 'buy', 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579');
+ call coin_transaction(5, 'bitcoin', 100, 0.1, 'sell', 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579');
+
+
+ -- Trigger function to update the wallet balance of the user for both deposit and withdraw
+
+CREATE OR REPLACE FUNCTION balance_update_after_coin_transaction()
+  RETURNS TRIGGER 
+  LANGUAGE PLPGSQL
+  AS
+$$
+BEGIN
+	IF new.trans_type ='buy' THEN
+		UPDATE balance
+			SET wallet_balance = wallet_balance - new.trans_amt
+        WHERE user_id = new.user_id;
+	ELSE
+		UPDATE balance
+    		SET wallet_balance = wallet_balance + new.trans_amt
+          WHERE user_id = new.user_id;
+ 	END IF;
+
+  
+  IF new.trans_type = 'buy' THEN
+     INSERT INTO coin_holding (user_id, coin_id, no_of_coins) 
+      VALUES(new.user_id, new.coin_id, new.no_of_coins)
+      ON CONFLICT (user_id, coin_id) DO UPDATE 
+      SET no_of_coins  = coin_holding.no_of_coins+new.no_of_coins;
+  ELSE
+  	UPDATE coin_holding 
+		SET no_of_coins = coin_holding.no_of_coins-new.no_of_coins
+			WHERE coin_holding.user_id = new.user_id and coin_holding.coin_id = new.coin_id;
+	  DELETE FROM coin_holding
+		  WHERE no_of_coins = 0;
+  END IF;
+
+	RETURN NEW;
+END;
+$$
+
+-- Trigger to update the wallet balance and no_of_coins
+
+CREATE TRIGGER wallet_balance_after_transaction
+  AFTER INSERT
+  ON coin_transaction
+  FOR EACH ROW
+  EXECUTE PROCEDURE balance_update_after_coin_transaction();
+
+
+
+-- To grant table permission
+
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO arjun;
+
