@@ -31,21 +31,29 @@ CREATE TABLE wallet_transaction (
 	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
+-- Create Coin Table
+
+CREATE TABLE coins (
+	coin_id varchar(40) NOT NULL UNIQUE PRIMARY KEY,
+	coin_name varchar(40) NOT NULL UNIQUE,
+	coin_symbol varchar(20) NOT NULL,
+	image_url varchar(200) NOT NULL	
+);
 
 -- Create Coin Transaction Table
 
 CREATE TYPE coin_trans_type AS ENUM ('buy', 'sell');
 
 CREATE TABLE coin_transaction (
-  user_id INT,
+ 	user_id INT,
 	trans_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 	coin_id varchar(40) NOT NULL,
   trans_amt FLOAT NOT NULL,
 	no_of_coins FLOAT NOT NULL, 
   trans_type coin_trans_type NOT NULL,
-  image_url varchar(200) NOT NULL,
 	trans_date TIMESTAMP NOT NULL,
-	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
+	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+	FOREIGN KEY(coin_id) REFERENCES coins(coin_id) ON DELETE CASCADE
 );
 
 
@@ -56,7 +64,8 @@ CREATE TABLE coin_holding (
 	coin_id varchar(40) NOT NULL,
 	no_of_coins FLOAT NOT NULL,
 	PRIMARY KEY(user_id, coin_id),
-	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE
+	FOREIGN KEY(user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+	FOREIGN KEY(coin_id) REFERENCES coins(coin_id) ON DELETE CASCADE
 );
 
 
@@ -166,7 +175,7 @@ select * from users where user_id = 5;
 
 
 
--- Stored Procedure to Insert Into Coin Transaction Table
+-- Stored Procedure to Insert Into Coin Transaction Table and Coin Table
 
 create or replace procedure coin_transaction(
 	user_id int,
@@ -174,20 +183,25 @@ create or replace procedure coin_transaction(
  	trans_amt float,
 	no_of_coins float,
 	trans_type coin_trans_type,
+	coin_name varchar(40),
+	coin_symbol varchar(20),
 	image_url varchar(200)
 )
 language plpgsql    
 as $$
 begin
-    INSERT INTO coin_transaction (user_id, coin_id, trans_amt, no_of_coins, trans_type, image_url, trans_date) 
-	    VALUES (user_id, coin_id, trans_amt, no_of_coins, trans_type , image_url, CURRENT_TIMESTAMP);
+	INSERT INTO coins (coin_id, coin_name, coin_symbol, image_url) 
+		values (coin_id, coin_name, coin_symbol, image_url)
+			ON CONFLICT DO NOTHING;
+			
+	INSERT INTO coin_transaction (user_id, coin_id, trans_amt, no_of_coins, trans_type, trans_date) 
+	    VALUES (user_id, coin_id, trans_amt, no_of_coins, trans_type , CURRENT_TIMESTAMP);
 
     commit;
 end;$$
 
 -- To call a stored procedure
- call coin_transaction(5, 'bitcoin', 100, 0.1, 'buy', 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579');
- call coin_transaction(5, 'bitcoin', 100, 0.1, 'sell', 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579');
+call coin_transaction(5, 'bitcoin', 100, 0.1, 'buy', 'Bitcoin', 'btc', 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579');
 
 
  -- Trigger function to update the wallet balance of the user for both deposit and withdraw

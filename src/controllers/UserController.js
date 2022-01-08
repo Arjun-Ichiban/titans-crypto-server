@@ -172,11 +172,11 @@ exports.userDetails = async (req, res) => {
 exports.coinTransaction = async (req, res) => {
   try {
     const user_id = req.params.id;
-    const { coin_id, amount, no_of_coins, type, image_url } = req.body;
+    const { coin_id, amount, no_of_coins, type, coin_name, coin_symbol, image_url } = req.body;
 
     const result = await db.query(
-      `call coin_transaction($1, $2, $3, $4, $5, $6);`,
-      [user_id, coin_id, amount, no_of_coins, type, image_url]
+      `call coin_transaction($1, $2, $3, $4, $5, $6, $7, $8);`,
+      [user_id, coin_id, amount, no_of_coins, type, coin_name, coin_symbol, image_url]
     );
 
     res.status(200).send({
@@ -192,4 +192,30 @@ exports.coinTransaction = async (req, res) => {
   }
 };
 
+
+exports.walletTransactionList = async (req, res) => {
+  try {
+    const user_id = req.params.id;
+
+    const { rows } = await db.query(
+      `SELECT trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date
+          FROM wallet_transaction
+              WHERE user_id=$1;`,
+      [user_id]
+    );
+    if (rows == 0) {
+      res.status(400).send({
+        message: "Retrieval Failed",
+      });
+    } else {
+      res.status(200).send(
+        rows
+      );
+    }
+  } catch (error) {
+    res.status(400).send({
+      message: "Error occured",
+    });
+  }
+};
 
