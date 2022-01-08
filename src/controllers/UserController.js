@@ -193,25 +193,24 @@ exports.coinTransaction = async (req, res) => {
 };
 
 
-exports.walletTransactionList = async (req, res) => {
+exports.coinTransactionList = async (req, res) => {
   try {
     const user_id = req.params.id;
 
     const { rows } = await db.query(
-      `SELECT trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date
-          FROM wallet_transaction
-              WHERE user_id=$1;`,
+      `SELECT ct.trans_id, ct.trans_amt, ct.no_of_coins, ct.trans_type, to_char(ct.trans_date,'DD-MM-YYYY HH24:MM') as trans_date,
+	      coins.coin_symbol, image_url
+          FROM coin_transaction ct
+            INNER JOIN coins 
+              ON ct.coin_id = coins.coin_id
+                WHERE ct.user_id = $1
+                ORDER BY trans_date;`,
       [user_id]
     );
-    if (rows == 0) {
-      res.status(400).send({
-        message: "Retrieval Failed",
-      });
-    } else {
-      res.status(200).send(
-        rows
-      );
-    }
+
+    res.status(200).send(
+      rows
+    );
   } catch (error) {
     res.status(400).send({
       message: "Error occured",

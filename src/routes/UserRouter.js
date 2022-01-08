@@ -10,6 +10,7 @@ router.route('/:id/wallet-balance').get(UserController.walletBalance);
 router.route('/:id/wallet-transaction').post(UserController.walletTransaction);
 router.route('/:id/wallet-transaction-list').get(UserController.walletTransactionList);
 router.route('/:id/coin-transaction').post(UserController.coinTransaction);
+router.route('/:id/coin-transaction-list').get(UserController.coinTransactionList);
 
 
 module.exports = router;

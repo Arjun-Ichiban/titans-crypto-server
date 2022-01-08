@@ -249,6 +249,22 @@ CREATE TRIGGER wallet_balance_after_transaction
   EXECUTE PROCEDURE balance_update_after_coin_transaction();
 
 
+-- To get Transaction List
+
+SELECT
+	ct.trans_id,
+	ct.trans_amt,
+	ct.no_of_coins,
+	ct.trans_type,
+	to_char(ct.trans_date,'DD-MM-YYYY HH24:MM') as trans_date,
+	coins.coin_symbol,
+	image_url
+    FROM coin_transaction ct
+        INNER JOIN coins 
+            ON ct.coin_id = coins.coin_id
+              WHERE ct.user_id = 5
+                ORDER BY trans_date;
+
 
 -- To grant table permission
 
