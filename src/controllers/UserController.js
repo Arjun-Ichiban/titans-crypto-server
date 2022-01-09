@@ -116,7 +116,8 @@ exports.walletTransactionList = async (req, res) => {
     const { rows } = await db.query(
       `SELECT trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date
           FROM wallet_transaction
-              WHERE user_id=$1;`,
+              WHERE user_id=$1
+                ORDER BY trans_date DESC;`,
       [user_id]
     );
     if (rows == 0) {
@@ -204,7 +205,7 @@ exports.coinTransactionList = async (req, res) => {
             INNER JOIN coins 
               ON ct.coin_id = coins.coin_id
                 WHERE ct.user_id = $1
-                ORDER BY trans_date;`,
+                ORDER BY trans_date DESC;`,
       [user_id]
     );
 
@@ -218,3 +219,23 @@ exports.coinTransactionList = async (req, res) => {
   }
 };
 
+
+exports.coinHolding = async (req, res) => {
+  try {
+    const user_id = req.params.id;
+
+    const { rows } = await db.query(
+      `SELECT * FROM coin_holding
+          WHERE user_id=$1;`,
+      [user_id]
+    );
+
+    res.status(200).send(
+      rows
+    );
+  } catch (error) {
+    res.status(400).send({
+      message: "Error occured",
+    });
+  }
+};

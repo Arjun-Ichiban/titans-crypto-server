@@ -112,7 +112,7 @@ INSERT INTO wallet_transaction (user_id, trans_amt, trans_type, trans_date)
 	VALUES (5, 500, 'deposit', CURRENT_TIMESTAMP);
 
 
--- Stored Procedure To Insert Into Transaction Table
+-- Stored Procedure To Insert Into Wallet Transaction Table
 
 create or replace procedure wallet_transaction(
 	user_id int,
@@ -166,7 +166,10 @@ CREATE TRIGGER wallet_balance_after_transaction
 
 -- To Get a List of Wallet Transaction
 
-select trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date from wallet_transaction where user_id=5;
+select trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date 
+	from wallet_transaction 
+		where user_id=5
+			ORDER BY trans_date DESC;
 
 
 -- To Get User Details
@@ -249,7 +252,7 @@ CREATE TRIGGER wallet_balance_after_transaction
   EXECUTE PROCEDURE balance_update_after_coin_transaction();
 
 
--- To get Transaction List
+-- To get Coin Transaction List
 
 SELECT
 	ct.trans_id,
@@ -263,8 +266,11 @@ SELECT
         INNER JOIN coins 
             ON ct.coin_id = coins.coin_id
               WHERE ct.user_id = 5
-                ORDER BY trans_date;
+                ORDER BY trans_date DESC;
 
+
+SELECT * FROM coin_holding
+	WHERE user_id=5;
 
 -- To grant table permission
 
