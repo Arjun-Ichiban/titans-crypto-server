@@ -114,7 +114,7 @@ exports.walletTransactionList = async (req, res) => {
     const user_id = req.params.id;
 
     const { rows } = await db.query(
-      `SELECT trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date
+      `SELECT trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MI') as trans_date
           FROM wallet_transaction
               WHERE user_id=$1
                 ORDER BY trans_date DESC;`,
@@ -199,7 +199,7 @@ exports.coinTransactionList = async (req, res) => {
     const user_id = req.params.id;
 
     const { rows } = await db.query(
-      `SELECT ct.trans_id, ct.trans_amt, ct.no_of_coins, ct.trans_type, to_char(ct.trans_date,'DD-MM-YYYY HH24:MM') as trans_date,
+      `SELECT ct.trans_id, ct.trans_amt, ct.no_of_coins, ct.trans_type, to_char(ct.trans_date,'DD-MM-YYYY HH24:MI') as trans_date,
 	      coins.coin_symbol, image_url
           FROM coin_transaction ct
             INNER JOIN coins 
@@ -225,7 +225,7 @@ exports.coinHolding = async (req, res) => {
     const user_id = req.params.id;
 
     const { rows } = await db.query(
-      `SELECT * FROM coin_holding
+      `SELECT coin_id, no_of_coins FROM coin_holding
           WHERE user_id=$1;`,
       [user_id]
     );

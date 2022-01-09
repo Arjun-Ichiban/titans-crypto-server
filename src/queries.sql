@@ -116,7 +116,7 @@ INSERT INTO wallet_transaction (user_id, trans_amt, trans_type, trans_date)
 
 create or replace procedure wallet_transaction(
 	user_id int,
-  amount float,
+  	amount float,
 	trans_type trans_type
 )
 language plpgsql    
@@ -269,7 +269,7 @@ SELECT
                 ORDER BY trans_date DESC;
 
 
-SELECT * FROM coin_holding
+SELECT coin_id, no_of_coins FROM coin_holding
 	WHERE user_id=5;
 
 -- To grant table permission
