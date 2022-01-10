@@ -19,9 +19,9 @@ app.listen(PORT, () => {
 
 app.use('/user', userRoute);
 
-// app.get('/', (req, res) => {
-//     res.send("index")
-// });
+app.get('/', (req, res) => {
+    res.send("connected")
+});
 
 app.post('/', (req, res) => {
     console.log(req.body);

@@ -166,7 +166,7 @@ CREATE TRIGGER wallet_balance_after_transaction
 
 -- To Get a List of Wallet Transaction
 
-select trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MM') as trans_date 
+select trans_amt, trans_type, to_char(trans_date,'DD-MM-YYYY HH24:MI') as trans_date 
 	from wallet_transaction 
 		where user_id=5
 			ORDER BY trans_date DESC;
@@ -259,7 +259,7 @@ SELECT
 	ct.trans_amt,
 	ct.no_of_coins,
 	ct.trans_type,
-	to_char(ct.trans_date,'DD-MM-YYYY HH24:MM') as trans_date,
+	to_char(ct.trans_date,'DD-MM-YYYY HH24:MI') as trans_date,
 	coins.coin_symbol,
 	image_url
     FROM coin_transaction ct
