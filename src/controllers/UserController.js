@@ -120,15 +120,9 @@ exports.walletTransactionList = async (req, res) => {
                 ORDER BY trans_date DESC;`,
       [user_id]
     );
-    if (rows == 0) {
-      res.status(400).send({
-        message: "Retrieval Failed",
-      });
-    } else {
-      res.status(200).send(
-        rows
-      );
-    }
+    res.status(200).send(
+      rows
+    );
   } catch (error) {
     res.status(400).send({
       message: "Error occured",
