@@ -23,10 +23,7 @@ app.get('/', (req, res) => {
     res.send("connected")
 });
 
-app.post('/', (req, res) => {
-    console.log(req.body);
-    res.status(200).send("yes");
-});
+//heroku database d34ggujdcb7c80
 
 app.get('/coin', (req, res) => {
     res.status(200).send(

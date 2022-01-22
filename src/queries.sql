@@ -272,7 +272,21 @@ SELECT
 SELECT coin_id, no_of_coins FROM coin_holding
 	WHERE user_id=5;
 
+
+select cast(trans_type as varchar(10)), sum(trans_amt), count(trans_type)
+ from wallet_transaction
+ where user_id = 5
+ group by trans_type
+Union
+select cast(trans_type as varchar(10)), sum(trans_amt), count(trans_type)
+ from coin_transaction
+ where user_id = 5
+ group by trans_type;
+
+
 -- To grant table permission
 
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO arjun;
+
+
 

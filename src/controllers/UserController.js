@@ -233,3 +233,22 @@ exports.coinHolding = async (req, res) => {
     });
   }
 };
+
+exports.transactionReport = async (req, res) => {
+  try {
+    const user_id = req.params.id;
+
+    const { rows } = await db.query(
+      `SELECT * FROM get_transaction_report ($1);`,
+      [user_id]
+    );
+
+    res.status(200).send(
+      rows
+    );
+  } catch (error) {
+    res.status(400).send({
+      message: "Error occured",
+    });
+  }
+};
