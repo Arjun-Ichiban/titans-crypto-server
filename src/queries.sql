@@ -207,7 +207,7 @@ end;$$
 call coin_transaction(5, 'bitcoin', 100, 0.1, 'buy', 'Bitcoin', 'btc', 'https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579');
 
 
- -- Trigger function to update the wallet balance of the user for both deposit and withdraw
+ -- Trigger function to update the wallet balance of the user for both buying and selling of coin
 
 CREATE OR REPLACE FUNCTION balance_update_after_coin_transaction()
   RETURNS TRIGGER 
@@ -273,15 +273,32 @@ SELECT coin_id, no_of_coins FROM coin_holding
 	WHERE user_id=5;
 
 
-select cast(trans_type as varchar(10)), sum(trans_amt), count(trans_type)
- from wallet_transaction
- where user_id = 5
- group by trans_type
-Union
-select cast(trans_type as varchar(10)), sum(trans_amt), count(trans_type)
- from coin_transaction
- where user_id = 5
- group by trans_type;
+-- Function to create report of total sum and count of each transaction type
+
+create or replace function get_transaction_report (
+	id_user int
+) 
+	returns table (
+		trans_type varchar,
+		total_sum float,
+		total_count bigint
+	) 
+	language plpgsql
+as $$
+begin
+	return query 
+		select cast(wt.trans_type as varchar(10)), sum(wt.trans_amt) as total_sum, count(wt.trans_type) as total_count
+			from wallet_transaction as wt
+				where wt.user_id = id_user
+					group by wt.trans_type
+		Union
+		select cast(ct.trans_type as varchar(10)), sum(ct.trans_amt) as total_sum, count(ct.trans_type) as total_count
+			 from coin_transaction as ct 
+			 	where ct.user_id = id_user
+			 		group by ct.trans_type;
+end;$$
+
+SELECT * FROM get_transaction_report (8);
 
 
 -- To grant table permission
